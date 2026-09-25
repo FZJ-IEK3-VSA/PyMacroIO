@@ -1,0 +1,4 @@
+# Runtime dependencies for pyMacroIO.
+# Development/test extras live in pyproject.toml: pip install -e ".[dev]"
+numpy>=1.21
+matplotlib>=3.5

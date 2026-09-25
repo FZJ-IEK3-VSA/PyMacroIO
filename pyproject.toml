@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyMacroIO"
+version = "0.1.0"
+description = "Dynamic disequilibrium macroeconomic model with input-output structure"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "AGPL-3.0-only"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Andrew G. Ross" },
+]
+keywords = [
+    "input-output",
+    "macroeconomics",
+    "disequilibrium",
+    "economic-modelling",
+    "shock-propagation",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "numpy>=1.21",
+    "matplotlib>=3.5",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+]
+
+[project.urls]
+Homepage = "https://www.fz-juelich.de/en/ice/ice-2"
+Documentation = "https://doi.org/10.5281/zenodo.21884597"
+
+[tool.setuptools.packages.find]
+include = ["pyMacroIO*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
