@@ -70,13 +70,13 @@ class ModelConfig:
     # Per-period growth cap on inv_scale (None = uncapped), preventing runaway compounding.
     investment_scale_growth_cap: float | None = None
 
-    # KLEMS structure, active only when prod_function="klems", defaults being indicative midpoints.
-    klems_sigma_e:   float | np.ndarray = 0.5   # CES within energy inputs
-    klems_sigma_m:   float | np.ndarray = 0.3   # CES within material inputs
-    klems_sigma_kle: float | np.ndarray = 0.3   # KL bundle vs energy (inner nest)
-    klems_sigma_klem: float | np.ndarray = 0.3  # KLE bundle vs materials (top nest)
-    klems_sigma_kl:  float | np.ndarray = 0.7   # capital vs labour
-    klems_sigma_l:   float | np.ndarray = 1.5   # skill tiers within labour
+    # KLEMS structure, active only when prod_function="klems", defaults being the sourced centrals.
+    klems_sigma_e:   float | np.ndarray = 1.2   # CES within energy inputs
+    klems_sigma_m:   float | np.ndarray = 2.5   # CES within material inputs
+    klems_sigma_kle: float | np.ndarray = 0.333 # KL bundle vs energy (inner nest)
+    klems_sigma_klem: float | np.ndarray = 0.818  # KLE bundle vs materials (top nest)
+    klems_sigma_kl:  float | np.ndarray = 0.3   # capital vs labour
+    klems_sigma_l:   float | np.ndarray = 3.7   # skill tiers within labour
     # "materials" pattern-matches the M nest, "intermediates" puts every non-energy input in M.
     klems_m_scope: str = "materials"
 
@@ -146,7 +146,7 @@ class ModelConfig:
             raise ValueError(f"subsistence_shares must be in [0, 1) for all sectors; got {self.subsistence_shares}")
         for _klems_field in (
             "klems_sigma_e", "klems_sigma_m", "klems_sigma_kle",
-            "klems_sigma_kl", "klems_sigma_l",
+            "klems_sigma_klem", "klems_sigma_kl", "klems_sigma_l",
         ):
             _v = np.atleast_1d(np.asarray(getattr(self, _klems_field), dtype=float))
             if not np.all(_v > 0):
@@ -272,15 +272,19 @@ def build_subsistence_shares_vector(
 
 # KLEMS patterns, matched case-insensitively at word starts, so "gas" cannot catch "biogas".
 _ENERGY_PATTERNS: list[str] = [
-    "electricity", "gas", "biogas", "coal", "crude oil", "petroleum refin",
-    "nuclear", "biomass", "wind", "solar", "tide", "geotherm",
+    "electricity", "gas", "coal", "crude oil", "petroleum refin",
+    "nuclear", "uranium", "biomass", "wind", "solar", "tide", "geotherm",
     "steam", "heat", "coke oven", "natural gas distribution",
 ]
+_ENERGY_EXCLUDE: list[str] = ["biogas"]
 _MATERIALS_PATTERNS: list[str] = [
     "mining", "quarry", "iron", "steel", "alumin", "cement",
     "lime", "plaster", "glass", "basic metal", "chemical",
-    "rubber", "plastic", "paper", "wood",
+    "rubber", "plastic", "paper", "wood", "pulp", "fertiliser", "ceramic", "bricks",
+    "clinker", "non-metallic mineral", "precious metal", "preciuos metal", "lead, zinc",
+    "copper", "non-ferrous", "casting of metals",
 ]
+_MATERIALS_EXCLUDE: list[str] = ["incineration", "landfill", "composting", "biogasification"]
 
 
 def classify_klems(sector_labels: list[str],
@@ -292,13 +296,12 @@ def classify_klems(sector_labels: list[str],
     m_mask = np.zeros(N, dtype=bool)
     import re
     for i, label in enumerate(sector_labels):
-        bare = label.split(":", 1)[1] if ":" in label else label
-        bare_lower = bare.lower()
-        if any(re.search(r"\b" + re.escape(p), bare_lower)
-               for p in _ENERGY_PATTERNS):
+        bare_lower = re.sub(r"^[^:\s]+:", "", label).lower()
+        hit = lambda ps, ex: (any(re.search(r"\b" + re.escape(p), bare_lower) for p in ps)
+                              and not any(x in bare_lower for x in ex))
+        if hit(_ENERGY_PATTERNS, _ENERGY_EXCLUDE):
             e_mask[i] = True
-        elif any(re.search(r"\b" + re.escape(p), bare_lower)
-                 for p in _MATERIALS_PATTERNS):
+        elif hit(_MATERIALS_PATTERNS, _MATERIALS_EXCLUDE):
             m_mask[i] = True
     if m_scope == "intermediates":
         m_mask = ~e_mask
