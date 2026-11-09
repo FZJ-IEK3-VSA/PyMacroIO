@@ -141,8 +141,8 @@ INVESTMENT_CLOSURE_MODES = ("fixed", "keynesian")
 # Threshold in producing_x above which A_essential marks an input essential in adapted Leontief.
 ESSENTIAL_INPUT_THRESHOLD = 0.5
 
-# Default CES substitution elasticity.
-CES_ELASTICITY_DEFAULT = 1.5
+# Default CES substitution elasticity,
+CES_ELASTICITY_DEFAULT = 0.1
 
 # IO identity tolerances
 ROW_IDENTITY_ATOL = 1e-10
