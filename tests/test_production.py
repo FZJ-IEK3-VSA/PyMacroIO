@@ -194,7 +194,7 @@ class TestProducingX:
     def test_ces_output_above_leontief_below_linear_when_scarce(
         self, model: InputOutputModel
     ) -> None:
-        """CES output with sigma > 1 lies between Leontief and linear when one input is scarce."""
+        """CES output lies between Leontief and linear when one input is scarce."""
         m = model
         xcap0 = m.x0.copy()
         l_ = _base_labour(m)
